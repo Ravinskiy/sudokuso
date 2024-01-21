@@ -122,8 +122,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     input_filepath = args.input
     output_filepath = args.output
-    # input_filepath = 'inputs/sudokos.json'
-    # output_filepath = 'output_sudokos.json'
     input_file = open(input_filepath, mode='r', encoding='utf8')
     input_grids = json.load(input_file)
     input_file.close()
