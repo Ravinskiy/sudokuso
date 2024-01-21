@@ -107,15 +107,14 @@ def sudoku(
 
 
 def solve(grid: List[List[int]]) -> List[List[int]]:
-    mutable_grid = list(grid)
     print_grid(grid)
     print()
-    if sudoku(mutable_grid):
+    if sudoku(grid):
         print_grid(grid)
         print('\n\n')
     else:
         raise RuntimeError('Solution does not exist.')
-    return mutable_grid
+    return grid
 
 
 if __name__ == "__main__":
