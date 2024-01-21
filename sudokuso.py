@@ -1,5 +1,22 @@
+import argparse
 import json
 from typing import List, Callable
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '-i',
+    '--input',
+    required=True,
+    type=str,
+    help='Input JSON file path'
+)
+parser.add_argument(
+    '-o',
+    '--output',
+    required=True,
+    type=str,
+    help='Output JSON file path'
+)
 
 
 def print_grid(grid: List[List[int]]) -> None:
@@ -9,7 +26,45 @@ def print_grid(grid: List[List[int]]) -> None:
         print()
 
 
-def validate_number(
+def tranpose_grid(grid: List[List[int]]) -> List[List[int]]:
+    transposed_tuples = list(zip(*grid))
+    transposed = [list(sublist) for sublist in transposed_tuples]
+    return transposed
+
+
+def unfold_cells(grid: List[List[int]]) -> List[List[int]]:
+    cells = list()
+    for line in range(0, 9, 3):
+        for column in range(0, 9, 3):
+            cell = []
+            for row in range(line, line + 3):
+                for col in range(column, column + 3):
+                    cell.append(grid[row][col])
+            cells.append(cell)
+    return cells
+
+
+def grid_valid(grid: List[List[int]]) -> bool:
+    valid = True
+    lines = list()
+    transposed_grid = tranpose_grid(grid)
+    unfolded_cells = unfold_cells(grid)
+    lines.extend(grid)
+    lines.extend(transposed_grid)
+    lines.extend(unfolded_cells)
+    for line in lines:
+        empty_count = line.count(0)
+        empty_correction = int(bool(empty_count))
+        numbers_count = len(line) - empty_count + empty_correction
+        unique_count = len(set(line))
+        diff = numbers_count - unique_count
+        if diff:
+            valid = False
+            break
+    return valid
+
+
+def number_valid(
     grid: List[List[int]],
     row: int,
     col: int,
@@ -42,8 +97,8 @@ def sudoku(
         col = 0
     if grid[row][col] > 0:
         return sudoku(grid, row, col + 1)
-    for number in range(1, 9 + 1, 1):
-        if validate_number(grid, row, col, number):
+    for number in range(1, 10, 1):
+        if number_valid(grid, row, col, number):
             grid[row][col] = number
             if sudoku(grid, row, col + 1):
                 return True
@@ -51,7 +106,7 @@ def sudoku(
     return False
 
 
-def main(grid: List[List[int]]) -> List[List[int]]:
+def solve(grid: List[List[int]]) -> List[List[int]]:
     mutable_grid = list(grid)
     print_grid(grid)
     print()
@@ -63,35 +118,21 @@ def main(grid: List[List[int]]) -> List[List[int]]:
     return mutable_grid
 
 
-# input_grid = [
-#     [2, 5, 0, 0, 3, 0, 9, 0, 1],
-#     [0, 1, 0, 0, 0, 4, 0, 0, 0],
-#     [4, 0, 7, 0, 0, 0, 2, 0, 8],
-#     [0, 0, 5, 2, 0, 0, 0, 0, 0],
-#     [0, 0, 0, 0, 9, 8, 1, 0, 0],
-#     [0, 4, 0, 0, 0, 3, 0, 0, 0],
-#     [0, 0, 0, 3, 6, 0, 0, 7, 2],
-#     [0, 7, 0, 0, 0, 0, 0, 0, 3],
-#     [9, 0, 3, 0, 0, 0, 6, 0, 4]
-# ]
-
-# print_grid(input_grid)
-# print()
-# if (sudoku(input_grid)):
-#     print_grid(input_grid)
-# else:
-#     print('Solution does not exist')
-
-
 if __name__ == "__main__":
-    input_filepath = 'inputs/sudokos.json'
-    output_filepath = 'output_sudokos.json'
+    args = parser.parse_args()
+    input_filepath = args.input
+    output_filepath = args.output
+    # input_filepath = 'inputs/sudokos.json'
+    # output_filepath = 'output_sudokos.json'
     input_file = open(input_filepath, mode='r', encoding='utf8')
     input_grids = json.load(input_file)
     input_file.close()
     output_grids = list()
     for input_grid in input_grids:
-        output_grid = main(input_grid)
+        if not grid_valid(input_grid):
+            print_grid(input_grid)
+            raise RuntimeError('The grid is not valid.')
+        output_grid = solve(input_grid)
         output_grids.append(output_grid)
     output_file = open(output_filepath, mode='w', encoding='utf8')
     json.dump(output_grids, output_file)
