@@ -89,7 +89,7 @@ def sudoku(
     grid: List[List[int]],
     row: int = 0,
     col: int = 0
-) -> Callable[[List[List[int]], int, int], Callable]|bool:
+) -> Callable[[List[List[int]], int, int], Callable|bool]|bool:
     if (row == 8 and col == 9):
         return True
     if col == 9:
